@@ -1,0 +1,36 @@
+version: '3'
+services:
+  spark-master:
+    image: apache/spark:3.4.1-python3
+    ports:
+      - "8080:8080"  # Spark 마스터 웹 인터페이스를 호스트에서 접근하기 위한 포트 매핑
+      - "7077:7077"  # Spark 마스터의 클러스터 매니저 포트 매핑
+    command: >
+      bash -c "spark-class org.apache.spark.deploy.master.Master \
+      --ip spark-master \
+      --port 7077 \
+      --webui-port 8080 \
+      & sleep infinity"
+    environment:
+      - PATH=$PATH:/opt/spark/bin
+      - SPARK_LOCAL_IP=spark-master  # Spark 마스터의 내부 호스트명 설정
+      - SPARK_PUBLIC_DNS=0.0.0.0  # 호스트의 공용 IP 또는 도메인 주소
+
+    networks:
+      - spark-net
+
+  spark-worker-1:
+    image: apache/spark:3.4.1-python3
+    environment:
+      - PATH=$PATH:/opt/spark/bin
+      - SPARK_LOCAL_IP=spark-worker-1  # Spark 워커의 내부 호스트명 설정
+      - SPARK_MASTER_URL=spark://spark-master:7077  # Spark 마스터의 클러스터 매니저 URL
+    depends_on:
+      - spark-master
+    networks:
+      - spark-net
+
+  # 다른 Spark 워커 컨테이너들도 동일한 방식으로 정의합니다.
+
+networks:
+  spark-net:
