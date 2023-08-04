@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from sklearn.datasets import make_classification
 from pyspark.sql import SparkSession
 
-def generate_random_offsets_in_month(year, month, num_offsets) -> list[int]:
+def generate_random_offsets_in_month(year, month, num_offsets):
     # Calculate the number of days in the specified month
     days_in_month = (datetime(year, month % 12 + 1, 1) - timedelta(days=1)).day
 
@@ -21,7 +21,7 @@ def generate_random_offsets_in_month(year, month, num_offsets) -> list[int]:
 
     return random_offsets
 
-def random_datetimes_in_month(year, month, num_datetimes) -> list[datetime]:
+def random_datetimes_in_month(year, month, num_datetimes):
     random_offsets = generate_random_offsets_in_month(year, month, num_datetimes)
 
     # Get the start datetime for the specified month
@@ -33,7 +33,7 @@ def random_datetimes_in_month(year, month, num_datetimes) -> list[datetime]:
     return random_datetimes
 
 
-def make_classification_data(num_col: int, num_row: int) -> pd.DataFrame:
+def make_classification_data(num_col: int, num_row: int):
     X, y = make_classification(
         n_samples=num_row,
         n_features=num_col,
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         .getOrCreate()
 
     for _ in range(100):
-        res_df = make_classification_data(100, 10000)
+        res_df = make_classification_data(100, 1000)
         df = spark.createDataFrame(res_df)
         df.write.mode('append').parquet("s3a://test-ml-storage/ml-test/aizen_de_test_1.parquet")
     spark.stop()

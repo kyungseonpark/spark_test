@@ -1,7 +1,10 @@
 version: '3'
 services:
   spark-master:
-    image: apache/spark:3.4.1-python3
+    build:
+      context: ./
+      dockerfile: Dockerfile-spark
+#    image: aizen_spark:3.4.1
     ports:
       - "8080:8080"  # Spark 마스터 웹 인터페이스를 호스트에서 접근하기 위한 포트 매핑
       - "7077:7077"  # Spark 마스터의 클러스터 매니저 포트 매핑
@@ -10,17 +13,23 @@ services:
       --ip spark-master \
       --port 7077 \
       --webui-port 8080 \
-      & sleep infinity"
+      & sleep 5 && spark-submit --master spark://spark-master:7077 /opt/spark/work-dir/test_s3.py"
     environment:
       - PATH=$PATH:/opt/spark/bin
       - SPARK_LOCAL_IP=spark-master  # Spark 마스터의 내부 호스트명 설정
       - SPARK_PUBLIC_DNS=0.0.0.0  # 호스트의 공용 IP 또는 도메인 주소
-
+      - AWS_ACCESS_KEY_ID=AKIA4M5NUBNCSSFF3RLN
+      - AWS_SECRET_ACCESS_KEY=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
+    volumes:
+      - ./:/opt/spark/work-dir
     networks:
       - spark-net
 
   spark-worker-1:
-    image: apache/spark:3.4.1-python3
+    build:
+      context: ./
+      dockerfile: Dockerfile-spark
+#    image: aizen_spark:3.4.1
     environment:
       - PATH=$PATH:/opt/spark/bin
       - SPARK_LOCAL_IP=spark-worker-1  # Spark 워커의 내부 호스트명 설정
@@ -29,8 +38,7 @@ services:
       - spark-master
     networks:
       - spark-net
-
-  # 다른 Spark 워커 컨테이너들도 동일한 방식으로 정의합니다.
+    command: spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 
 networks:
   spark-net:

@@ -1,0 +1,3 @@
+FROM aizen_spark:3.4.1
+
+RUN pip install pandas scikit-learn
